@@ -22,70 +22,62 @@ namespace Praktikum8
         public MySqlCommand sqlCommand;
         public MySqlDataAdapter sqlAdapter;
         public string sqlQuery;
+        DataTable dtTeamAway = new DataTable();
+        DataTable dtTeamHome= new DataTable();
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            sqlQuery = "SELECT t.team_id as 'ID Team',  team_name as 'Nama Tim', manager_name as 'Nama Manager', player_name as 'Captain Tim', home_stadium as 'Stadium', capacity as 'Capacity', n.match_date as 'Tanggal', if(n.goal_home is null, 'Belum Berlangsung', concat(n.goal_home, ' - ', n.goal_away)) as 'Skor' FROM manager m, team t, player p, premier_league.match n WHERE t.manager_id = m.manager_id and p.player_id = t.captain_id;";
+            sqlCommand = new MySqlCommand(sqlQuery, sqlConnect);
+            sqlAdapter = new MySqlDataAdapter(sqlCommand);
+            sqlAdapter.Fill(dtTeamHome);
+            sqlAdapter.Fill(dtTeamAway);
+            comboBox_Home.DataSource = dtTeamHome;
+            comboBox_Home.DisplayMember = "Nama Tim";
+            comboBox_Home.ValueMember = "ID Team";
+            comboBox_Away.DataSource = dtTeamAway;
+            comboBox_Away.DisplayMember = "Nama Tim";
+            comboBox_Away.ValueMember = "ID Team";
+        }
         private void comboBox_Home_SelectedIndexChanged(object sender, EventArgs e)
         {
-            try
-            {
-                DataTable dtSearch = new DataTable();  
-                label_ManagerHome.Text = comboBox_Home.SelectedValue.ToString();
-                sqlQuery = "SELECT * FROM team WHERE manager_name = '" + comboBox_Home.SelectedValue.ToString() + "'";           
-                label_CaptainHome.Text = comboBox_Home.SelectedValue.ToString();
-                sqlQuery = "SELECT * FROM team WHERE player_name = '" + comboBox_Home.SelectedValue.ToString() + "'";               
-                label_Stadium.Text = comboBox_Home.SelectedValue.ToString();
-                sqlQuery = "SELECT * FROM team WHERE home_stadium = '" + comboBox_Home.SelectedValue.ToString() + "'";             
-                label_Capacity.Text = comboBox_Home.SelectedValue.ToString();
-                sqlQuery = "SELECT * FROM team WHERE capacity = '" + comboBox_Home.SelectedValue.ToString() + "'";
-                sqlCommand = new MySqlCommand(sqlQuery, sqlConnect);
-                sqlAdapter = new MySqlDataAdapter(sqlCommand);
-                sqlAdapter.Fill(dtSearch);            
-            }
-            catch (Exception)
-            {
-
-            }
+            int posisiindex = comboBox_Home.SelectedIndex;
+            label_ManagerHome.Text = dtTeamHome.Rows[posisiindex]["Nama Manager"].ToString();
+            label_CaptainHome.Text = dtTeamHome.Rows[posisiindex]["Captain Tim"].ToString();
+            label_Stadium.Text = dtTeamHome.Rows[posisiindex]["Stadium"].ToString();
+            label_Capacity.Text = dtTeamHome.Rows[posisiindex]["Capacity"].ToString();
+            label_Tanggal.Text = dtTeamHome.Rows[posisiindex]["Tanggal"].ToString();
+            label_Skor.Text = dtTeamHome.Rows[posisiindex]["Skor"].ToString();
         }
         private void comboBox_Away_SelectedIndexChanged(object sender, EventArgs e)
         {
-            try
-            {
-                DataTable dtSearch = new DataTable();
-                label_ManagerAway.Text = comboBox_Away.SelectedValue.ToString();
-                sqlQuery = "SELECT * FROM team WHERE manager_name = '" + comboBox_Away.SelectedValue.ToString() + "'";
-                label_CaptainAway.Text = comboBox_Away.SelectedValue.ToString();
-                sqlQuery = "SELECT * FROM team WHERE player_name = '" + comboBox_Away.SelectedValue.ToString() + "'";
-                sqlCommand = new MySqlCommand(sqlQuery, sqlConnect);
-                sqlAdapter = new MySqlDataAdapter(sqlCommand);
-                sqlAdapter.Fill(dtSearch);
-            }
-            catch (Exception)
-            {
-
-            }           
+            int posisiindex = comboBox_Away.SelectedIndex;
+            label_ManagerAway.Text = dtTeamHome.Rows[posisiindex]["Nama Manager"].ToString();
+            label_CaptainAway.Text = dtTeamHome.Rows[posisiindex]["Captain Tim"].ToString();
         }
-        private void Form1_Load(object sender, EventArgs e)
-        {                   
-            sqlQuery = "SELECT team_name as 'Nama Tim', " +
-                     "manager_name as 'Manager Tim', " +
-                     "player_name as 'Captain Tim', " +
-                     "home_stadium as 'Stadium', " +
-                     "capacity as 'Capacity'" +
-                     "FROM manager m, team t, player p " +
-                     "WHERE t.manager_id = m.manager_id and p.player_id = t.captain_id";
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            DataTable dtPlayer = new DataTable();
+            sqlQuery = "select d.`minute`, p.player_name as 'Player Name 1'," +
+            "if (d.type = 'CY', 'Yellow Card', " +
+            "if (d.type = 'CR', 'Real Card'," +
+            "if (d.type = 'GO','Goal', " +
+            "if (d.type = 'GP','Goal Penalty', " +
+            "if (d.type = 'GW','Own Goal', 'Penalty Miss'))))) as 'Type 1', " +
+            "k.player_name as 'Player Name 2', " +
+            "if (d.type = 'CY', 'Yellow Card', " + 
+            "if (d.type = 'CR', 'Real Card'," +
+            "if (d.type = 'GO','Goal'," +
+            "if (d.type = 'GP','Goal Penalty', " +
+            "if (d.type = 'GW','Own Goal', 'Penalty Miss'))))) as 'Type 2' " +
+            "from dmatch d, player p, player k, premier_league.match b " +
+            "where d.team_id = p.player_id and " +
+            "d.team_id = p.team_id and k.player_id = d.team_id and " +
+            "k.player_id = d.player_id and d.match_id = b.match_id";
             sqlCommand = new MySqlCommand(sqlQuery, sqlConnect);
             sqlAdapter = new MySqlDataAdapter(sqlCommand);
-            DataTable dtHome = new DataTable();
-            sqlAdapter.Fill(dtHome);
-            comboBox_Home.DataSource = dtHome;
-            comboBox_Home.DisplayMember = "Nama Tim";
-            comboBox_Home.ValueMember = "Stadium";
-            comboBox_Home.ValueMember = "Captain Tim"; 
-            comboBox_Home.ValueMember = "Capacity";
-            comboBox_Home.ValueMember = "Manager Tim";
-            DataTable dtAway = new DataTable();
-            comboBox_Away.DataSource = dtHome;
-            comboBox_Away.DisplayMember = "Nama Tim";
-            comboBox_Away.ValueMember = "Captain Tim";
-            comboBox_Away.ValueMember = "Manager Tim";
+            sqlAdapter.Fill(dtPlayer);
+            dgvplayer.DataSource = dtPlayer;
         }
     }
 }
